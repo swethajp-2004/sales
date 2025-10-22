@@ -1,0 +1,62 @@
+Metric,Description,Pandas Formula,SQL Formula,Excel Formula,Example Data,Example Output
+Monthly Revenue by MainChannel,Sum of revenue grouped by month and main channel,"df.groupby(['Month','MainChannel'])['GrossAfterCb'].sum().reset_index()","SELECT DATE_TRUNC('month', SaleDate) AS Month, MainChannel, SUM(GrossAfterCb) AS Revenue FROM sales GROUP BY 1,2;","PivotTable: Rows=Month, Columns=MainChannel, Values=Sum(GrossAfterCb)","Example Data:
+SaleDate,MainChannel,GrossAfterCb
+2024-01-15,Online,12000
+2024-01-20,Retail,8000
+2024-02-05,Online,15000","Example Output:
+Month,MainChannel,Revenue
+2024-01,Online,12000
+2024-01,Retail,8000
+2024-02,Online,15000"
+Quarterly Revenue,Sum of revenue per fiscal quarter,df.groupby(df['SaleDate'].dt.to_period('Q'))['GrossAfterCb'].sum().reset_index(),"SELECT DATE_TRUNC('quarter', SaleDate) AS Quarter, SUM(GrossAfterCb) FROM sales GROUP BY 1;",PivotTable grouped by Quarter,"Example Data:
+SaleDate,GrossAfterCb
+2024-01-10,5000
+2024-02-12,7000
+2024-05-20,9000","Example Output:
+Quarter,Revenue
+2024Q1,12000
+2024Q2,9000"
+Top Products by Revenue,Top N products ranked by total revenue,df.groupby('Product')['GrossAfterCb'].sum().sort_values(ascending=False).head(10),"SELECT Product, SUM(GrossAfterCb) FROM sales GROUP BY Product ORDER BY 2 DESC LIMIT 10;","PivotTable: Rows=Product, Values=Sum(GrossAfterCb)","Example Data:
+Product,GrossAfterCb
+A,5000
+B,9000
+C,3000","Example Output:
+Product,Revenue
+B,9000
+A,5000
+C,3000"
+Year-over-Year Growth by Region,Yearly revenue growth percentage by region,"agg = df.groupby(['Region','Year'])['GrossAfterCb'].sum().reset_index(); agg['YoY'] = agg.groupby('Region')['GrossAfterCb'].pct_change()","WITH t AS (SELECT Region, EXTRACT(YEAR FROM SaleDate) AS yr, SUM(GrossAfterCb) AS rev FROM sales GROUP BY Region, yr) SELECT t1.Region, t1.yr, (t1.rev - t2.rev)/t2.rev FROM t t1 LEFT JOIN t t2 ON t1.Region=t2.Region AND t1.yr=t2.yr+1;","PivotTable Region x Year, add YoY % formula","Example Data:
+Region,Year,GrossAfterCb
+North,2023,100000
+North,2024,120000
+South,2023,80000
+South,2024,88000","Example Output:
+Region,Year,YoY
+North,2024,20%
+South,2024,10%"
+Average Order Value (AOV),Average revenue per unique order,df['GrossAfterCb'].sum() / df['OrderUnitKey'].nunique(),SELECT SUM(GrossAfterCb)/COUNT(DISTINCT OrderUnitKey) AS AOV FROM sales;,SUM(GrossAfterCb)/COUNTUNIQUE(OrderUnitKey),"Example Data:
+OrderUnitKey,GrossAfterCb
+O1,200
+O2,400
+O3,600","Example Output:
+AOV,400"
+Profit Margin,Profit divided by revenue,df['Profit'].sum() / df['GrossAfterCb'].sum(),SELECT SUM(Profit)/SUM(GrossAfterCb) FROM sales;,SUM(Profit)/SUM(GrossAfterCb),"Example Data:
+Profit,GrossAfterCb
+200,1000
+300,1500","Example Output:
+ProfitMargin,20%"
+Month-over-Month Growth,Revenue growth compared to previous month per channel,monthly['MoM'] = monthly.groupby('MainChannel')['GrossAfterCb'].pct_change(),"SELECT m, MainChannel, (rev - LAG(rev) OVER (PARTITION BY MainChannel ORDER BY m))/LAG(rev) OVER (...) FROM monthly;",(Current - Previous)/Previous,"Example Data:
+Month,MainChannel,GrossAfterCb
+2024-01,Online,10000
+2024-02,Online,12000","Example Output:
+Month,MainChannel,MoM
+2024-02,Online,20%"
+Top Regions by Sales,Top N regions ranked by total revenue,df.groupby('Region')['GrossAfterCb'].sum().sort_values(ascending=False).head(10),"SELECT Region, SUM(GrossAfterCb) FROM sales GROUP BY Region ORDER BY 2 DESC LIMIT 10;","PivotTable: Rows=Region, Sort Descending","Example Data:
+Region,GrossAfterCb
+East,15000
+West,9000
+North,12000","Example Output:
+Region,Revenue
+East,15000
+North,12000
+West,9000"

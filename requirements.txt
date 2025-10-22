@@ -1,0 +1,10 @@
+gradio>=3.44
+pandas
+openpyxl
+sentence-transformers
+chromadb==0.4.24
+transformers
+accelerate
+torch
+faiss-cpu
+scikit-learn
