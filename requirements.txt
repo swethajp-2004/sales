@@ -1,8 +1,10 @@
 gradio>=3.44
+fastapi
+uvicorn
 pandas
 openpyxl
 sentence-transformers
-chromadb==0.4.24
+chromadb
 transformers
 accelerate
 torch
